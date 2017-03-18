@@ -18,7 +18,7 @@ public abstract class AlienGod {
         this.width = width;
         this.height = height;
         this.game = game;
-        dx=5;
+        dx=7;
         dy=20;
     }
 

@@ -10,7 +10,10 @@ public class Game extends JPanel implements ActionListener {
     ArrayList<Alien>aliens;
     ArrayList<Entity>bullets;
 
-    public boolean upPressed,downPressed,rightPressed,leftPressed,spacePressed;
+    int bulletTime;
+    Timer timer;
+
+    public boolean upPressed,downPressed,rightPressed,leftPressed,spacePressed,bulletReady=true,gameIsLose,gameIsWin,gameIsStart=true;
 
 
     public Game(){
@@ -29,7 +32,7 @@ public class Game extends JPanel implements ActionListener {
             public void keyPressed(KeyEvent e) {
 
                 if (e.getKeyCode() == KeyEvent.VK_W) {
-                    upPressed=false;
+                    upPressed=true;
                     System.out.println("W");
                 }
                 if (e.getKeyCode() == KeyEvent.VK_S) {
@@ -49,9 +52,10 @@ public class Game extends JPanel implements ActionListener {
 
                 if(e.getKeyCode()==KeyEvent.VK_SPACE){
                     System.out.println("SPACE");
-                    addBullet();
-                    spacePressed=true;
-
+                    if(isBulletReady()) {
+                        addBullet();
+                        spacePressed = true;
+                    }
                 }
 
 
@@ -89,6 +93,17 @@ public class Game extends JPanel implements ActionListener {
         frame.setLocationRelativeTo(null);
     }
 
+    public boolean isBulletReady(){
+        if(bulletTime<=0){
+            bulletTime=3;
+            return bulletReady=true;
+
+        }else{
+            bulletTime--;
+        }
+        return false;
+    }
+
     public static void main(String[] args){
         Game game = new Game();
         game.init();
@@ -96,8 +111,11 @@ public class Game extends JPanel implements ActionListener {
     }
 
     public void run(){
-        Timer timer = new Timer(1000/60,this);
-        timer.start();
+
+            timer = new Timer(1000 / 60, this);
+
+                timer.start();
+
     }
 
     public void init(){
@@ -106,19 +124,19 @@ public class Game extends JPanel implements ActionListener {
         bullets = new ArrayList<Entity>();
 
 
-        entities.add(new Ship(Color.white, (getWidth()/2),650,100,100,this));
-        int aX = 0;
-        int aY = 20;
-        for(int i = 0; i<44;i++){
-            aX+=50;
-            aliens.add(new Alien(Color.green,aX,aY,20,this));
-            if(aX%11==0){
-                aY+=25;
-                aX=0;
+            entities.add(new Ship(Color.white, (getWidth() / 2), 650, 100, 100, this));
+            int aX = 0;
+            int aY = 20;
+            for (int i = 0; i < 44; i++) {
+                aX += 50;
+                aliens.add(new Alien(Color.green, aX, aY, 20, this));
+                if (aX % 11 == 0) {
+                    aY += 25;
+                    aX = 0;
+                }
             }
         }
 
-    }
 
     public void addBullet(){
         bullets.add(new Bullet(Color.red, ((entities.get(0).getX() + (entities.get(0).getWidth() / 2))-25), entities.get(0).getY()-5, 5, 5, this));
@@ -127,25 +145,65 @@ public class Game extends JPanel implements ActionListener {
 
     public void paint(Graphics g){
         super.paint(g);
-        for(Entity obj: entities){
-            obj.paint(g);
-        }
-        for(AlienGod obj: aliens){
-            obj.paint(g);
-        }
-        for(Entity obj: bullets){
-            obj.paint(g);
+        gameStatus(g);
+        if(!gameIsStart) {
+            for (Entity obj : entities) {
+                obj.paint(g);
+            }
+            for (AlienGod obj : aliens) {
+                obj.paint(g);
+            }
+            for (Entity obj : bullets) {
+                obj.paint(g);
+            }
+        }else {
+
+            gameStatus(g);
         }
 
+        if(gameIsLose) {
+            gameStatus(g);
+        }
+        if(gameIsWin){
+            gameStatus(g);
+        }
+
+    }
+
+    public int getAlienCount(){
+        return aliens.size();
+    }
+
+    public void gameStatus(Graphics g){
+        if(gameIsLose) {
+            printSimpleString("You Died!", 50, getWidth() / 2, getHeight() / 2, g);
+        }
+        if(gameIsWin){
+            printSimpleString("You Win!", 50, getWidth() / 2, getHeight() / 2, g);
+        }
+        if(gameIsStart){
+            g.setColor(Color.green);
+            printSimpleString("Space Invaders, Press [W] to start!", 10, getWidth() / 2, getHeight() / 2,g );
+            if(upPressed){
+
+                System.out.println("GAME SHOULD START NOW");
+                gameIsStart=false;
+            }
+        }
     }
 
     public void collisions(){
 
         for(int i = 0;i<aliens.size();i++){
-            if(entities.get(0).collides(aliens.get(i))){
-               System.out.println("YOU LOSE");
-                entities.remove(entities.get(0));
+            if(entities.get(0).collides(aliens.get(i))) {
+                timer.stop();
+                gameIsLose=true;
+                break;
+
             }
+        }
+        if(getAlienCount()<1&&!gameIsStart){
+            gameIsWin=true;
         }
 
         for(int i = 0; i < aliens.size();i++){
@@ -168,7 +226,7 @@ public class Game extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        if (Stats.isPlay()) {
+
             collisions();
             entities.get(0).move();
 
@@ -184,6 +242,13 @@ public class Game extends JPanel implements ActionListener {
             repaint();
 
         }
+
+
+
+    private void printSimpleString(String s, int width, int XPos, int YPos, Graphics g2d){
+        int stringLen = (int)g2d.getFontMetrics().getStringBounds(s, g2d).getWidth();
+        int start = width/2 - stringLen/2;
+        g2d.drawString(s, start + XPos, YPos);
     }
 
 

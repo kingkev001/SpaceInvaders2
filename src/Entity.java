@@ -37,24 +37,7 @@ public abstract class Entity {
     public void move() {
         double nextRight=x+width+dx;
         double nextLeft=x+dx;
-        double nextTop = y + dy;
-        double nextBottom = y + height + dy;
 
-
-        if(getGame().isUpPressed()){
-            if(nextTop <=0){
-
-            }else{
-                y-=dy;
-            }
-        }
-        if(getGame().isDownPressed()){
-            if(nextBottom > game.getHeight()){
-
-            }else{
-                y+=dy;
-            }
-        }
         if(getGame().isLeftPressed()){
             if(nextLeft <= 0){
 
